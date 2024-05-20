@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type HandlerFuncMethod struct {
@@ -32,10 +34,11 @@ func (s *WebServer) Start() error {
 	for path, handler := range s.Handlers {
 
 		// mux.Handle(path, otelhttp.WithRouteTag(path, http.HandlerFunc(handler)))
-		// mux.Handle(path, otelhttp.WithRouteTag(path, http.HandlerFunc(OtelMiddleware(handler))))
-		mux.HandleFunc(path, Middleware(handler))
+		mux.Handle(path, otelhttp.WithRouteTag(path, http.HandlerFunc(handler)))
+		// mux.HandleFunc(path, Middleware(handler))
 	}
-	return http.ListenAndServe(s.WebServerPort, mux)
+	handler := otelhttp.NewHandler(mux, "/")
+	return http.ListenAndServe(s.WebServerPort, handler)
 }
 
 func Middleware(handler http.HandlerFunc) http.HandlerFunc {
