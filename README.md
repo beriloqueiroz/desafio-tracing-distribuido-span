@@ -1,18 +1,13 @@
 # Readme
 
-- para rodar os testes da aplicação
+- para rodar os testes da aplicação, entre em cada service e rode:
 
   ```bash
     go test ./...
   ```
 
-- para rodar a aplicação localmente na porta 8080
+- para rodar a aplicação localmente, service A na porta 8080 e service B na porta 8081
 
   ```bash
     docker compose up -d
   ```
-
-- link do Google Cloud Run
-  - <https://desafio-temperatura-por-cep-dos4clluiq-uc.a.run.app>
-  - exemplo:
-    - <https://desafio-temperatura-por-cep-dos4clluiq-uc.a.run.app/?cep=60541646>

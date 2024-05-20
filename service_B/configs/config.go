@@ -3,9 +3,10 @@ package config
 import "github.com/spf13/viper"
 
 type conf struct {
-	TempBaseUrl   string `mapstructure:"TEMP_BASE_URL"`
-	TempApiKey    string `mapstructure:"TEMP_API_KEY"`
-	WebServerPort string `mapstructure:"WEB_SERVER_PORT"`
+	TempBaseUrl          string `mapstructure:"TEMP_BASE_URL"`
+	TempApiKey           string `mapstructure:"TEMP_API_KEY"`
+	WebServerPort        string `mapstructure:"WEB_SERVER_PORT"`
+	OtelExporterEndpoint string `mapstructure:"OTEL_EXPORTER_OTLP_ENDPOINT"`
 }
 
 func LoadConfig(paths []string) (*conf, error) {

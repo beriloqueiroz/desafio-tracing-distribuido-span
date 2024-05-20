@@ -32,8 +32,6 @@ func (s *WebServer) AddRoute(path string, handler http.HandlerFunc) {
 func (s *WebServer) Start() error {
 	mux := http.NewServeMux()
 	for path, handler := range s.Handlers {
-
-		// mux.Handle(path, otelhttp.WithRouteTag(path, http.HandlerFunc(handler)))
 		mux.Handle(path, otelhttp.WithRouteTag(path, http.HandlerFunc(handler)))
 		// mux.HandleFunc(path, Middleware(handler))
 	}
