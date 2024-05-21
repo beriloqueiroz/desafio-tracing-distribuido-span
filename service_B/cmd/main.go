@@ -48,8 +48,8 @@ func main() {
 			log.Fatal("failed shutdown TraceProvider: %w", err)
 		}
 	}()
-
-	server := webserver.NewWebServer(configs.WebServerPort)
+	tracer := otel.Tracer("request service B")
+	server := webserver.NewWebServer(configs.WebServerPort, tracer)
 
 	locationGateway := &gateways.GetLocationGatewayImpl{
 		Ctx: initCtx,
@@ -66,6 +66,7 @@ func main() {
 	)
 	getTemperatureRoute := routes.NewGetTemperatureRouteApi(*getTemperUseCase)
 	server.AddRoute("GET /", getTemperatureRoute.Handler)
+
 	srvErr := make(chan error, 1)
 	go func() {
 		fmt.Println("Starting web server "+service_name+" on port", configs.WebServerPort)
@@ -89,7 +90,7 @@ func initTraceProvider(serviceName string, collectorUrl string) (func(context.Co
 	if err != nil {
 		return nil, fmt.Errorf("failed to create resource: %w", err)
 	}
-	ctx, cancel := context.WithTimeout(ctx, time.Second*2)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*20)
 	defer cancel()
 
 	// create grpc connection

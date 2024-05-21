@@ -26,7 +26,7 @@ func (gt *GetTemperatureGatewayImpl) GetTemperatureByLocation(ctx context.Contex
 
 func (gt *GetTemperatureGatewayImpl) buscaTemp(city string) (*temperatureInfo, error) {
 	uri := gt.BaseUrl + "?q=" + url.QueryEscape(city) + "&lang=pt-br&key=" + gt.Key
-	req, err := http.NewRequest("GET", uri, nil)
+	req, err := http.NewRequestWithContext(gt.Ctx, "GET", uri, nil)
 	if err != nil {
 		return nil, err
 	}

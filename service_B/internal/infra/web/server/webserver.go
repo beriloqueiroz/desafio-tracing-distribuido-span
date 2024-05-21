@@ -1,11 +1,14 @@
 package webserver
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type HandlerFuncMethod struct {
@@ -16,12 +19,14 @@ type HandlerFuncMethod struct {
 type WebServer struct {
 	Handlers      map[string]http.HandlerFunc
 	WebServerPort string
+	OtelTracer    trace.Tracer
 }
 
-func NewWebServer(serverPort string) *WebServer {
+func NewWebServer(serverPort string, otelTracer trace.Tracer) *WebServer {
 	return &WebServer{
 		Handlers:      make(map[string]http.HandlerFunc),
 		WebServerPort: serverPort,
+		OtelTracer:    otelTracer,
 	}
 }
 
@@ -32,19 +37,26 @@ func (s *WebServer) AddRoute(path string, handler http.HandlerFunc) {
 func (s *WebServer) Start() error {
 	mux := http.NewServeMux()
 	for path, handler := range s.Handlers {
-		mux.Handle(path, otelhttp.WithRouteTag(path, http.HandlerFunc(handler)))
+		mux.Handle(path, otelhttp.WithRouteTag(path, s.OtelMiddleware(http.HandlerFunc(handler))))
 		// mux.HandleFunc(path, Middleware(handler))
 	}
+	mux.Handle("GET /metrics", promhttp.Handler()) // to prometheus
 	handler := otelhttp.NewHandler(mux, "/")
+
 	return http.ListenAndServe(s.WebServerPort, handler)
 }
 
-func Middleware(handler http.HandlerFunc) http.HandlerFunc {
+func (s *WebServer) OtelMiddleware(handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		carrier := propagation.HeaderCarrier(r.Header)
+		ctx := r.Context()
+		ctx = otel.GetTextMapPropagator().Extract(ctx, carrier)
+		startTime := time.Now()
 		name := r.URL.Path
-		delay := time.Now()
-		fmt.Printf("path %s start\n", name)
+		ctx, span := s.OtelTracer.Start(ctx, name, trace.WithTimestamp(startTime))
+		defer span.End()
+		otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(r.Header))
 		handler.ServeHTTP(w, r)
-		fmt.Printf("path %s end at %d\n", name, time.Now().Sub(delay).Milliseconds())
+		span.End(trace.WithTimestamp(time.Now()))
 	}
 }

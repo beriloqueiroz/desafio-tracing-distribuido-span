@@ -51,8 +51,9 @@ func main() {
 		}
 	}()
 
+	tracer := otel.Tracer("request service A")
 	// start web server
-	server := webserver.NewWebServer(configs.WebServerPort)
+	server := webserver.NewWebServer(configs.WebServerPort, tracer)
 	orchestrationGateway := &gateways.OrchestrationGatewayImpl{
 		Ctx: initCtx,
 		Url: configs.ServiceBUrl,
@@ -86,7 +87,7 @@ func initTraceProvider(serviceName string, collectorUrl string) (func(context.Co
 	if err != nil {
 		return nil, fmt.Errorf("failed to create resource: %w", err)
 	}
-	ctx, cancel := context.WithTimeout(ctx, time.Second*2)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*20)
 	defer cancel()
 
 	// create grpc connection

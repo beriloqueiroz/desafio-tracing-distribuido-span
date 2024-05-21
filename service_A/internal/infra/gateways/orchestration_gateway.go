@@ -15,19 +15,23 @@ type OrchestrationGatewayImpl struct {
 }
 
 func (gt *OrchestrationGatewayImpl) GetTemperatureByZipCode(ctx context.Context, zipCode string) (*usecase.GetTemperByZipCodeUseCaseOutput, error) {
-	resp, error := http.DefaultClient.Get(gt.Url + "?cep=" + zipCode)
-	if error != nil {
-		return nil, error
+	req, err := http.NewRequestWithContext(ctx, "GET", gt.Url+"?cep="+zipCode, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
 	}
 	defer resp.Body.Close()
-	body, error := io.ReadAll(resp.Body)
-	if error != nil {
-		return nil, error
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
 	}
 	var c usecase.GetTemperByZipCodeUseCaseOutput
-	error = json.Unmarshal(body, &c)
-	if error != nil {
-		return nil, error
+	err = json.Unmarshal(body, &c)
+	if err != nil {
+		return nil, err
 	}
 	gt.Ctx.Done()
 	return &c, nil
