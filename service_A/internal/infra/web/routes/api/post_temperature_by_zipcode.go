@@ -38,12 +38,12 @@ func (cr *GetTemperatureRouteApi) Handler(w http.ResponseWriter, r *http.Request
 	output, err := cr.getTemperatureByZipCodeUseCase.Execute(r.Context(), input.Cep)
 
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
 		if err.Error() == "invalid zipcode" {
 			w.WriteHeader(http.StatusUnprocessableEntity)
-		}
-		if err.Error() == "can not find zipcode" {
+		} else if err.Error() == "can not find zipcode" {
 			w.WriteHeader(http.StatusNotFound)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
 		}
 		msg := struct {
 			Message string `json:"message"`
