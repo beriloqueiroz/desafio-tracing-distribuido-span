@@ -6,28 +6,19 @@ services:
     build: 
       context: ./service_A
       dockerfile: "Dockerfile"
-    restart: always
     ports:
       - "8080:8080"
-    depends_on:
-      - jaeger-all-in-one
-      - otel-collector
 
   service-b:
     image: beriloqueiroz/desafio-tracing-distribuido-span-b:latest
     build: 
       context: ./service_B
       dockerfile: "Dockerfile"
-    restart: always
     ports:
       - "8081:8081"
-    depends_on:
-      - jaeger-all-in-one
-      - otel-collector
 
   otel-collector:
-    image: otel/opentelemetry-collector:latest
-    restart: always
+    image: otel/opentelemetry-collector-contrib:0.100.0
     command: ["--config=/etc/otel-collector-config.yaml"]
     volumes:
       - ./.docker/otel-collector-config.yaml:/etc/otel-collector-config.yaml
@@ -35,17 +26,19 @@ services:
       - "1888:1888"   # pprof extension
       - "13133:13133" # health_check extension
       - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP http receiver
       - "55679:55679" # zpages extension
       - "8888:8888"   # Prometheus metrics exposed by the collector
       - "8889:8889"   # Prometheus exporter metrics
 
   jaeger-all-in-one:
-    image: jaegertracing/all-in-one:latest
-    restart: always
+    image: jaegertracing/all-in-one:1.57
+    command: ["--reporter.grpc.host-port=otel-collector:4317"]
     ports:
       - "16686:16686" # port to access by browser
       - "14268"
       - "14250"
+
 
   zipkin-all-in-one:
     image: openzipkin/zipkin:latest
@@ -55,8 +48,7 @@ services:
 
   prometheus:
     container_name: prometheus
-    image: prom/prometheus:latest
-    restart: always
+    image: prom/prometheus:v2.52.0
     volumes:
       - ./.docker/prometheus.yaml:/etc/prometheus/prometheus.yml
     ports:

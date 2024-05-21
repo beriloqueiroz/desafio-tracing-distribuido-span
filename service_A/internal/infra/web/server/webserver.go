@@ -38,12 +38,10 @@ func (s *WebServer) Start() error {
 	mux := http.NewServeMux()
 	for path, handler := range s.Handlers {
 		mux.Handle(path, otelhttp.WithRouteTag(path, s.OtelMiddleware(http.HandlerFunc(handler))))
-		// mux.HandleFunc(path, Middleware(handler))
 	}
-	mux.Handle("GET /metrics", promhttp.Handler()) // to prometheus
-	handler := otelhttp.NewHandler(mux, "/")
+	mux.Handle("GET /metrics", otelhttp.WithRouteTag("GET /metrics", promhttp.Handler()))
 
-	return http.ListenAndServe(s.WebServerPort, handler)
+	return http.ListenAndServe(s.WebServerPort, mux)
 }
 
 func (s *WebServer) OtelMiddleware(handler http.HandlerFunc) http.HandlerFunc {

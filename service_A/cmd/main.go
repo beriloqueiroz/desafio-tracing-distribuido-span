@@ -17,11 +17,9 @@ import (
 	routes "github.com/beriloqueiroz/desafio-temperatura-por-cep/internal/infra/web/routes/api"
 	webserver "github.com/beriloqueiroz/desafio-temperatura-por-cep/internal/infra/web/server"
 	"github.com/beriloqueiroz/desafio-temperatura-por-cep/internal/usecase"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
@@ -90,17 +88,18 @@ func initTraceProvider(serviceName string, collectorUrl string) (func(context.Co
 	ctx, cancel := context.WithTimeout(ctx, time.Second*20)
 	defer cancel()
 
-	// create grpc connection
-	conn, err := grpc.DialContext(ctx, collectorUrl,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithBlock(),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create gRPC connection to collector: %W", err)
-	}
+	// conn, err := grpc.DialContext(ctx, collectorUrl,
+	// 	grpc.WithTransportCredentials(insecure.NewCredentials()),
+	// 	grpc.WithBlock(),
+	// )
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to create gRPC connection to collector: %W", err)
+	// }
 
-	// create export
-	traceExport, err := otlptracegrpc.New(ctx, otlptracegrpc.WithGRPCConn(conn))
+	// traceExport, err := otlptracegrpc.New(ctx, otlptracegrpc.WithGRPCConn(conn))
+
+	traceExport, err := otlptracehttp.New(ctx)
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to create export trace: %w", err)
 	}
