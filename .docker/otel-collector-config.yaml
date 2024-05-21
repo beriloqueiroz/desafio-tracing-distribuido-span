@@ -4,30 +4,31 @@ receivers:
       grpc:
 
 extensions:
-  health_check: {}
+  health_check:
+  pprof:
+    endpoint: :1888
+  zpages:
+    endpoint: :55679
 
 exporters:
   otlp:
-    endpoint: jaeger-all-in-one:4317
+    endpoint: zipkin-all-in-one:4317
     tls:
       insecure: true
 
-  prometheus:
-    endpoint: 0.0.0.0:9090
+  debug:
+
+  zipkin:
+    endpoint: "http://zipkin-all-in-one:9411/api/v2/spans"
+    format: proto
 
 processors:
   batch:
-    timeout: 30s
-    send_batch_size: 1
 
 service:
-  extensions: [health_check]
+  extensions: [pprof, zpages, health_check]
   pipelines:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp]
-    metrics:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [otlp, prometheus]
+      exporters: [debug, zipkin, otlp]

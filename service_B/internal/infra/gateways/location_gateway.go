@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type GetLocationGatewayImpl struct {
@@ -24,28 +26,27 @@ type viaCEP struct {
 }
 
 func (gt *GetLocationGatewayImpl) GetLocationByZipCode(ctx context.Context, zipCode string) (string, error) {
-	location, err := buscaCep(zipCode)
+	req, err := http.NewRequestWithContext(ctx, "GET", "https://viacep.com.br/ws/"+zipCode+"/json/", nil)
+	if err != nil {
+		return "", err
+	}
+	client := http.Client{
+		Transport: otelhttp.NewTransport(http.DefaultTransport),
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	var c viaCEP
+	err = json.Unmarshal(body, &c)
 	if err != nil {
 		return "", err
 	}
 	gt.Ctx.Done()
-	return location.Localidade, nil
-}
-
-func buscaCep(cep string) (*viaCEP, error) {
-	resp, error := http.Get("https://viacep.com.br/ws/" + cep + "/json/")
-	if error != nil {
-		return nil, error
-	}
-	defer resp.Body.Close()
-	body, error := io.ReadAll(resp.Body)
-	if error != nil {
-		return nil, error
-	}
-	var c viaCEP
-	error = json.Unmarshal(body, &c)
-	if error != nil {
-		return nil, error
-	}
-	return &c, nil
+	return c.Localidade, nil
 }

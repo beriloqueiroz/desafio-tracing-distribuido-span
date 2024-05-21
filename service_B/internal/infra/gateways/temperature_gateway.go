@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type GetTemperatureGatewayImpl struct {
@@ -31,7 +33,10 @@ func (gt *GetTemperatureGatewayImpl) buscaTemp(city string) (*temperatureInfo, e
 		return nil, err
 	}
 	req.Header.Set("accept", "application/json")
-	resp, error := http.DefaultClient.Do(req)
+	client := http.Client{
+		Transport: otelhttp.NewTransport(http.DefaultTransport),
+	}
+	resp, error := client.Do(req)
 	if error != nil {
 		return nil, error
 	}
