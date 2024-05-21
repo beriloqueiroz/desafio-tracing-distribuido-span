@@ -16,8 +16,6 @@ exporters:
     tls:
       insecure: true
 
-  debug:
-
   zipkin:
     endpoint: "http://zipkin-all-in-one:9411/api/v2/spans"
     format: proto
@@ -31,4 +29,4 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [debug, zipkin, otlp]
+      exporters: [zipkin, otlp]
