@@ -1,19 +1,14 @@
 receivers:
   otlp:
     protocols:
-      http:
+      grpc:
 
 extensions:
   health_check: {}
 
 exporters:
-  # otlp:
-  #   endpoint: jaeger-all-in-one:4317
-  #   tls:
-  #     insecure: true
-
   otlp:
-    endpoint: http://zipkin-all-in-one:9411
+    endpoint: jaeger-all-in-one:4317
     tls:
       insecure: true
 

@@ -39,7 +39,6 @@ services:
       - "14268"
       - "14250"
 
-
   zipkin-all-in-one:
     image: openzipkin/zipkin:latest
     restart: always
