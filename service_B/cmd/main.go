@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"time"
@@ -13,6 +14,7 @@ import (
 	routes "github.com/beriloqueiroz/desafio-temperatura-por-cep/internal/infra/web/routes/api"
 	webserver "github.com/beriloqueiroz/desafio-temperatura-por-cep/internal/infra/web/server"
 	"github.com/beriloqueiroz/desafio-temperatura-por-cep/internal/usecase"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
@@ -51,13 +53,19 @@ func main() {
 	tracer := otel.Tracer("request service B")
 	server := webserver.NewWebServer(configs.WebServerPort, tracer)
 
+	client := http.Client{
+		Transport: otelhttp.NewTransport(http.DefaultTransport),
+	}
+
 	locationGateway := &gateways.GetLocationGatewayImpl{
-		Ctx: initCtx,
+		Ctx:    initCtx,
+		Client: client,
 	}
 	temperatureGateway := &gateways.GetTemperatureGatewayImpl{
 		Ctx:     initCtx,
 		BaseUrl: configs.TempBaseUrl,
 		Key:     configs.TempApiKey,
+		Client:  client,
 	}
 
 	getTemperUseCase := usecase.NewGetTemperByZipCodeUseCase(

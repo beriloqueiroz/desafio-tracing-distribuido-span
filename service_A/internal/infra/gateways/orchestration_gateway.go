@@ -7,12 +7,12 @@ import (
 	"net/http"
 
 	"github.com/beriloqueiroz/desafio-temperatura-por-cep/internal/usecase"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type OrchestrationGatewayImpl struct {
-	Ctx context.Context
-	Url string
+	Ctx    context.Context
+	Url    string
+	Client http.Client
 }
 
 func (gt *OrchestrationGatewayImpl) GetTemperatureByZipCode(ctx context.Context, zipCode string) (*usecase.GetTemperByZipCodeUseCaseOutput, error) {
@@ -21,10 +21,7 @@ func (gt *OrchestrationGatewayImpl) GetTemperatureByZipCode(ctx context.Context,
 		return nil, err
 	}
 
-	client := http.Client{
-		Transport: otelhttp.NewTransport(http.DefaultTransport),
-	}
-	resp, err := client.Do(req)
+	resp, err := gt.Client.Do(req)
 	if err != nil {
 		return nil, err
 	}

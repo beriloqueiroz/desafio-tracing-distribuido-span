@@ -7,14 +7,13 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type GetTemperatureGatewayImpl struct {
 	Ctx     context.Context
 	BaseUrl string
 	Key     string
+	Client  http.Client
 }
 
 func (gt *GetTemperatureGatewayImpl) GetTemperatureByLocation(ctx context.Context, location string) (float64, error) {
@@ -33,10 +32,8 @@ func (gt *GetTemperatureGatewayImpl) buscaTemp(city string) (*temperatureInfo, e
 		return nil, err
 	}
 	req.Header.Set("accept", "application/json")
-	client := http.Client{
-		Transport: otelhttp.NewTransport(http.DefaultTransport),
-	}
-	resp, error := client.Do(req)
+
+	resp, error := gt.Client.Do(req)
 	if error != nil {
 		return nil, error
 	}

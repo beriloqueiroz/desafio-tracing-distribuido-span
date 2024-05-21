@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -57,6 +59,9 @@ func main() {
 	orchestrationGateway := &gateways.OrchestrationGatewayImpl{
 		Ctx: initCtx,
 		Url: configs.ServiceBUrl,
+		Client: http.Client{
+			Transport: otelhttp.NewTransport(http.DefaultTransport),
+		},
 	}
 	getTemperUseCase := usecase.NewGetTemperByZipCodeUseCase(
 		orchestrationGateway,

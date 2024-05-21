@@ -5,12 +5,11 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type GetLocationGatewayImpl struct {
-	Ctx context.Context
+	Ctx    context.Context
+	Client http.Client
 }
 
 type viaCEP struct {
@@ -30,10 +29,7 @@ func (gt *GetLocationGatewayImpl) GetLocationByZipCode(ctx context.Context, zipC
 	if err != nil {
 		return "", err
 	}
-	client := http.Client{
-		Transport: otelhttp.NewTransport(http.DefaultTransport),
-	}
-	resp, err := client.Do(req)
+	resp, err := gt.Client.Do(req)
 	if err != nil {
 		return "", err
 	}
