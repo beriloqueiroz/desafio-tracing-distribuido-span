@@ -3,6 +3,7 @@ package gateways
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -16,13 +17,42 @@ type GetTemperatureGatewayImpl struct {
 	Client  http.Client
 }
 
-func (gt *GetTemperatureGatewayImpl) GetTemperatureByLocation(ctx context.Context, location string) (float64, error) {
-	output, err := gt.buscaTemp(location)
+func (gt *GetTemperatureGatewayImpl) GetTemperatureByZipCode(ctx context.Context, zipCode string) (*float64, *string, error) {
+	location, err := gt.buscaCep(ctx, zipCode)
 	if err != nil {
-		return 0, err
+		return nil, nil, err
+	}
+	output, err := gt.buscaTemp(*location)
+	if err != nil {
+		return nil, nil, err
 	}
 	gt.Ctx.Done()
-	return output.Current.TempC, nil
+	return &output.Current.TempC, location, nil
+}
+
+func (gt *GetTemperatureGatewayImpl) buscaCep(ctx context.Context, zipCode string) (*string, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", "https://viacep.com.br/ws/"+zipCode+"/json/", nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := gt.Client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	var c viaCEP
+	err = json.Unmarshal(body, &c)
+	if err != nil {
+		return nil, err
+	}
+	if c.HasError {
+		return nil, errors.New("can not find zipcode")
+	}
+	return &c.Localidade, nil
 }
 
 func (gt *GetTemperatureGatewayImpl) buscaTemp(city string) (*temperatureInfo, error) {
@@ -51,6 +81,19 @@ func (gt *GetTemperatureGatewayImpl) buscaTemp(city string) (*temperatureInfo, e
 		return nil, error
 	}
 	return &t, nil
+}
+
+type viaCEP struct {
+	Cep         string `json:"cep"`
+	Logradouro  string `json:"logradouro"`
+	Complemento string `json:"complemento"`
+	Bairro      string `json:"bairro"`
+	Localidade  string `json:"localidade"`
+	Uf          string `json:"uf"`
+	Unidade     string `json:"unidade"`
+	Ibge        string `json:"ibge"`
+	Gia         string `json:"gia"`
+	HasError    bool   `json:"erro"`
 }
 
 type temperatureInfo struct {

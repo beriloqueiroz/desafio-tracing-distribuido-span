@@ -57,10 +57,6 @@ func main() {
 		Transport: otelhttp.NewTransport(http.DefaultTransport),
 	}
 
-	locationGateway := &gateways.GetLocationGatewayImpl{
-		Ctx:    initCtx,
-		Client: client,
-	}
 	temperatureGateway := &gateways.GetTemperatureGatewayImpl{
 		Ctx:     initCtx,
 		BaseUrl: configs.TempBaseUrl,
@@ -69,7 +65,6 @@ func main() {
 	}
 
 	getTemperUseCase := usecase.NewGetTemperByZipCodeUseCase(
-		locationGateway,
 		temperatureGateway,
 	)
 	getTemperatureRoute := routes.NewGetTemperatureRouteApi(*getTemperUseCase)
