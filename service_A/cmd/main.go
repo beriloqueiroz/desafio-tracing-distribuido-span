@@ -54,7 +54,7 @@ func main() {
 	}()
 
 	tracer := otel.Tracer("request service A")
-	server := webserver.NewWebServer(configs.WebServerPort, tracer)
+	server := webserver.NewWebServer(configs.WebServerPort)
 
 	client := http.Client{
 		Transport: otelhttp.NewTransport(http.DefaultTransport),
@@ -68,7 +68,7 @@ func main() {
 	getTemperUseCase := usecase.NewGetTemperByZipCodeUseCase(
 		orchestrationGateway,
 	)
-	getTemperatureRoute := routes.NewGetTemperatureRouteApi(*getTemperUseCase)
+	getTemperatureRoute := routes.NewGetTemperatureRouteApi(*getTemperUseCase, tracer)
 	server.AddRoute("POST /get-cep", getTemperatureRoute.Handler)
 	srvErr := make(chan error, 1)
 	go func() {

@@ -21,11 +21,10 @@ func (gt *GetTemperatureGatewayImpl) GetTemperatureByZipCode(ctx context.Context
 	if err != nil {
 		return nil, nil, err
 	}
-	output, err := gt.buscaTemp(*location)
+	output, err := gt.buscaTemp(ctx, *location)
 	if err != nil {
 		return nil, nil, err
 	}
-	gt.Ctx.Done()
 	return &output.Current.TempC, location, nil
 }
 
@@ -54,9 +53,9 @@ func (gt *GetTemperatureGatewayImpl) buscaCep(ctx context.Context, zipCode strin
 	return &c.Localidade, nil
 }
 
-func (gt *GetTemperatureGatewayImpl) buscaTemp(city string) (*temperatureInfo, error) {
+func (gt *GetTemperatureGatewayImpl) buscaTemp(ctx context.Context, city string) (*temperatureInfo, error) {
 	uri := gt.BaseUrl + "?q=" + url.QueryEscape(city) + "&lang=pt-br&key=" + gt.Key
-	req, err := http.NewRequestWithContext(gt.Ctx, "GET", uri, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", uri, nil)
 	if err != nil {
 		return nil, err
 	}
