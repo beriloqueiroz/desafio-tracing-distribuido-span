@@ -46,15 +46,14 @@ func (s *WebServer) Start() error {
 
 func (s *WebServer) OtelMiddleware(handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		carrier := propagation.HeaderCarrier(r.Header)
+		carrier := propagation.HeaderCarrier(r.Header) //extrai a info do trace id
 		ctx := r.Context()
-		ctx = otel.GetTextMapPropagator().Extract(ctx, carrier)
+		ctx = otel.GetTextMapPropagator().Extract(ctx, carrier) // insere no contexto esse span
 		startTime := time.Now()
 		name := r.URL.Path
 		ctx, span := s.OtelTracer.Start(ctx, name, trace.WithTimestamp(startTime))
-		defer span.End()
+		defer span.End(trace.WithTimestamp(time.Now()))
 		otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(r.Header))
 		handler.ServeHTTP(w, r)
-		span.End(trace.WithTimestamp(time.Now()))
 	}
 }

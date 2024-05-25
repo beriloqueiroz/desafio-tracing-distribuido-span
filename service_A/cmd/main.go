@@ -69,7 +69,7 @@ func main() {
 		orchestrationGateway,
 	)
 	getTemperatureRoute := routes.NewGetTemperatureRouteApi(*getTemperUseCase)
-	server.AddRoute("POST /", getTemperatureRoute.Handler)
+	server.AddRoute("POST /get-cep", getTemperatureRoute.Handler)
 	srvErr := make(chan error, 1)
 	go func() {
 		fmt.Println("Starting web server "+serviceName+" on port", configs.WebServerPort)
