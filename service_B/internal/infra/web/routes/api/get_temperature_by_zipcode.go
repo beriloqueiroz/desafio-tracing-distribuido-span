@@ -3,7 +3,6 @@ package routes
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/beriloqueiroz/desafio-temperatura-por-cep/internal/usecase"
 	"go.opentelemetry.io/otel"
@@ -27,8 +26,8 @@ func (cr *GetTemperatureRouteApi) Handler(w http.ResponseWriter, r *http.Request
 	carrier := propagation.HeaderCarrier(r.Header)
 	ctx := r.Context()
 	ctx = otel.GetTextMapPropagator().Extract(ctx, carrier)
-	ctx, span := cr.OtelTracer.Start(ctx, r.URL.Path, trace.WithTimestamp(time.Now()))
-	defer span.End(trace.WithTimestamp(time.Now()))
+	ctx, span := cr.OtelTracer.Start(ctx, r.URL.Path)
+	defer span.End()
 	zipCode := r.URL.Query().Get("cep")
 
 	output, err := cr.getTemperatureByZipCodeUseCase.Execute(ctx, zipCode)

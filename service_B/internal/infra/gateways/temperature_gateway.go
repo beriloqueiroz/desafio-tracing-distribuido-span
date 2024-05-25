@@ -33,7 +33,7 @@ func (gt *GetTemperatureGatewayImpl) buscaCep(ctx context.Context, zipCode strin
 	if err != nil {
 		return nil, err
 	}
-	resp, err := gt.Client.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (gt *GetTemperatureGatewayImpl) buscaTemp(ctx context.Context, city string)
 	}
 	req.Header.Set("accept", "application/json")
 
-	resp, error := gt.Client.Do(req)
+	resp, error := http.DefaultClient.Do(req)
 	if error != nil {
 		return nil, error
 	}

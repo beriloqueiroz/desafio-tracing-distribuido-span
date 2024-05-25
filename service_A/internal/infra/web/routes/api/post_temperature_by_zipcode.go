@@ -14,6 +14,7 @@ import (
 type GetTemperatureRouteApi struct {
 	getTemperatureByZipCodeUseCase usecase.GetTemperByZipCodeUseCase
 	OtelTracer                     trace.Tracer
+	TestDelay                      time.Duration
 }
 
 func NewGetTemperatureRouteApi(getTemperatureByZipCodeUseCase usecase.GetTemperByZipCodeUseCase, otelTracer trace.Tracer) *GetTemperatureRouteApi {
@@ -31,8 +32,8 @@ func (cr *GetTemperatureRouteApi) Handler(w http.ResponseWriter, r *http.Request
 	carrier := propagation.HeaderCarrier(r.Header)
 	ctx := r.Context()
 	ctx = otel.GetTextMapPropagator().Extract(ctx, carrier)
-	ctx, span := cr.OtelTracer.Start(ctx, r.URL.Path, trace.WithTimestamp(time.Now()))
-	defer span.End(trace.WithTimestamp(time.Now()))
+	ctx, span := cr.OtelTracer.Start(ctx, r.URL.Path)
+	defer span.End()
 
 	var input inputDto
 
@@ -49,6 +50,7 @@ func (cr *GetTemperatureRouteApi) Handler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	time.Sleep(cr.TestDelay)
 	output, err := cr.getTemperatureByZipCodeUseCase.Execute(ctx, input.Cep)
 
 	if err != nil {

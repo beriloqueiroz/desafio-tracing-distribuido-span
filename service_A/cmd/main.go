@@ -69,6 +69,9 @@ func main() {
 		orchestrationGateway,
 	)
 	getTemperatureRoute := routes.NewGetTemperatureRouteApi(*getTemperUseCase, tracer)
+
+	getTemperatureRoute.TestDelay = time.Millisecond * time.Duration(configs.TestDelay)
+
 	server.AddRoute("POST /get-cep", getTemperatureRoute.Handler)
 	srvErr := make(chan error, 1)
 	go func() {
