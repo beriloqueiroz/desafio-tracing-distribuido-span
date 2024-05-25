@@ -1,29 +1,31 @@
-# Readme
+# OpenTelemetry + zipkin with clean architecture
 
-- para rodar os testes da aplicação, entre em cada service e rode:
+- service A -> service B -> external http apis -> service A  
+
+- to run tests
 
   ```bash
     go test ./...
   ```
 
-- para rodar a aplicação localmente, service A na porta 8080 e service B na porta 8081
+- to run applications, service A: 8080 and service B: 8081
 
   ```bash
     docker compose up -d
   ```
 
-- para executar a request basta enviar um POST para <http://locahost:8080>
+- to run request: POST to <http://locahost:8080>
 
  ```bash
   curl  -X POST \
-  'http://localhost:8080' \
+  'http://localhost:8080/get-cep' \
   --header 'Accept: */*' \
   --header 'User-Agent: Thunder Client (https://www.thunderclient.com)' \
   --header 'Content-Type: application/json' \
   --data-raw '{
-  "cep": "60541646"
+  "cep": "01550020"
   }'
  ```
 
-- para acessar o zpkin:
+- to see zpkin:
   - <http://localhost:9411/>

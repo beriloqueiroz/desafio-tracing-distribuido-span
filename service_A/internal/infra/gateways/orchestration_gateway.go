@@ -11,7 +11,6 @@ import (
 )
 
 type OrchestrationGatewayImpl struct {
-	Ctx    context.Context
 	Url    string
 	Client *http.Client
 }
@@ -21,7 +20,6 @@ func (gt *OrchestrationGatewayImpl) GetTemperatureByZipCode(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	// otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(req.Header))
 	resp, err := gt.Client.Do(req)
 	if err != nil {
 		return nil, err

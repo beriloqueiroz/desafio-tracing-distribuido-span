@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   service-a:
-    # image: beriloqueiroz/desafio-tracing-distribuido-span-a:latest
+    # image: 
     build: 
       context: ./service_A
       dockerfile: "Dockerfile"
@@ -10,7 +10,7 @@ services:
       - "8080:8080"
 
   service-b:
-    # image: beriloqueiroz/desafio-tracing-distribuido-span-b:latest
+    # image: 
     build: 
       context: ./service_B
       dockerfile: "Dockerfile"

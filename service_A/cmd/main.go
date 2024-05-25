@@ -54,24 +54,26 @@ func main() {
 	}()
 
 	tracer := otel.Tracer("request service A")
-	server := webserver.NewWebServer(configs.WebServerPort)
+	server := webserver.NewWebServer(configs.WebServerPort, tracer)
 
+	//insert automatic transport, any request with this client will be track
+	//there are a generic interceptor
 	client := &http.Client{
 		Transport: otelhttp.NewTransport(Interceptor{http.DefaultTransport}),
 	}
 
+	// include gateways e use cases
 	orchestrationGateway := &gateways.OrchestrationGatewayImpl{
-		Ctx:    initCtx,
 		Url:    configs.ServiceBUrl,
 		Client: client,
 	}
 	getTemperUseCase := usecase.NewGetTemperByZipCodeUseCase(
 		orchestrationGateway,
 	)
-	getTemperatureRoute := routes.NewGetTemperatureRouteApi(*getTemperUseCase, tracer)
 
+	// add routes and run server
+	getTemperatureRoute := routes.NewGetTemperatureRouteApi(*getTemperUseCase)
 	getTemperatureRoute.TestDelay = time.Millisecond * time.Duration(configs.TestDelay)
-
 	server.AddRoute("POST /get-cep", getTemperatureRoute.Handler)
 	srvErr := make(chan error, 1)
 	go func() {
