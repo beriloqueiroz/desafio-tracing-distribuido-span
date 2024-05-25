@@ -2,7 +2,6 @@ package routes
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/beriloqueiroz/desafio-temperatura-por-cep/internal/usecase"
@@ -25,8 +24,6 @@ func (cr *GetTemperatureRouteApi) Handler(w http.ResponseWriter, r *http.Request
 
 	err := json.NewDecoder(r.Body).Decode(&input)
 
-	fmt.Println(err)
-
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		msg := struct {
@@ -39,7 +36,6 @@ func (cr *GetTemperatureRouteApi) Handler(w http.ResponseWriter, r *http.Request
 	}
 
 	output, err := cr.getTemperatureByZipCodeUseCase.Execute(r.Context(), input.Cep)
-	fmt.Println(err)
 	if err != nil {
 		if err.Error() == "invalid zipcode" {
 			w.WriteHeader(http.StatusUnprocessableEntity)

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -74,8 +73,6 @@ func (gt *GetTemperatureGatewayImpl) buscaTemp(city string) (*temperatureInfo, e
 	}
 	var t temperatureInfo
 	error = json.Unmarshal(body, &t)
-	fmt.Println(error)
-	fmt.Println(t)
 
 	if error != nil {
 		return nil, error

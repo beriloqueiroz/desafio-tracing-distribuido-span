@@ -18,7 +18,6 @@ type OrchestrationGatewayImpl struct {
 
 func (gt *OrchestrationGatewayImpl) GetTemperatureByZipCode(ctx context.Context, zipCode string) (*usecase.GetTemperByZipCodeUseCaseOutput, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", gt.Url+"?cep="+zipCode, nil)
-	defer gt.Ctx.Done()
 	if err != nil {
 		return nil, err
 	}
