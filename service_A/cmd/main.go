@@ -28,7 +28,7 @@ import (
 
 func main() {
 
-	service_name := "service_A"
+	serviceName := "service_A"
 
 	// graceful exit
 	sigCh := make(chan os.Signal, 1)
@@ -42,7 +42,7 @@ func main() {
 		panic(err)
 	}
 
-	shutdown, err := initTraceProvider(service_name, configs.OtelExporterEndpoint)
+	shutdown, err := initTraceProvider(serviceName, configs.OtelExporterEndpoint)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -54,14 +54,16 @@ func main() {
 	}()
 
 	tracer := otel.Tracer("request service A")
-	// start web server
 	server := webserver.NewWebServer(configs.WebServerPort, tracer)
+
+	client := http.Client{
+		Transport: otelhttp.NewTransport(http.DefaultTransport),
+	}
+
 	orchestrationGateway := &gateways.OrchestrationGatewayImpl{
-		Ctx: initCtx,
-		Url: configs.ServiceBUrl,
-		Client: http.Client{
-			Transport: otelhttp.NewTransport(http.DefaultTransport),
-		},
+		Ctx:    initCtx,
+		Url:    configs.ServiceBUrl,
+		Client: client,
 	}
 	getTemperUseCase := usecase.NewGetTemperByZipCodeUseCase(
 		orchestrationGateway,
@@ -70,7 +72,7 @@ func main() {
 	server.AddRoute("POST /", getTemperatureRoute.Handler)
 	srvErr := make(chan error, 1)
 	go func() {
-		fmt.Println("Starting web server "+service_name+" on port", configs.WebServerPort)
+		fmt.Println("Starting web server "+serviceName+" on port", configs.WebServerPort)
 		srvErr <- server.Start()
 	}()
 

@@ -3,10 +3,11 @@ package usecase
 import "context"
 
 type GetTemperByZipCodeUseCaseOutput struct {
-	City  string  `json:"city"`
-	TempC float64 `json:"temp_C"`
-	TempF float64 `json:"temp_F"`
-	TempK float64 `json:"temp_K"`
+	City    string  `json:"city"`
+	TempC   float64 `json:"temp_C"`
+	TempF   float64 `json:"temp_F"`
+	TempK   float64 `json:"temp_K"`
+	Message string  `json:"message"`
 }
 
 type OrchestrationGateway interface {

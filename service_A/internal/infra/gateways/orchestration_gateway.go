@@ -3,6 +3,7 @@ package gateways
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 
@@ -17,6 +18,7 @@ type OrchestrationGatewayImpl struct {
 
 func (gt *OrchestrationGatewayImpl) GetTemperatureByZipCode(ctx context.Context, zipCode string) (*usecase.GetTemperByZipCodeUseCaseOutput, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", gt.Url+"?cep="+zipCode, nil)
+	defer gt.Ctx.Done()
 	if err != nil {
 		return nil, err
 	}
@@ -35,6 +37,10 @@ func (gt *OrchestrationGatewayImpl) GetTemperatureByZipCode(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	gt.Ctx.Done()
+
+	if len(c.Message) > 0 {
+		return nil, errors.New(c.Message)
+	}
+
 	return &c, nil
 }
