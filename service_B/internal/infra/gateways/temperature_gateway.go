@@ -13,7 +13,7 @@ type GetTemperatureGatewayImpl struct {
 	Ctx     context.Context
 	BaseUrl string
 	Key     string
-	Client  http.Client
+	Client  *http.Client
 }
 
 func (gt *GetTemperatureGatewayImpl) GetTemperatureByZipCode(ctx context.Context, zipCode string) (*float64, *string, error) {
@@ -33,7 +33,7 @@ func (gt *GetTemperatureGatewayImpl) buscaCep(ctx context.Context, zipCode strin
 	if err != nil {
 		return nil, err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := gt.Client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (gt *GetTemperatureGatewayImpl) buscaTemp(ctx context.Context, city string)
 	}
 	req.Header.Set("accept", "application/json")
 
-	resp, error := http.DefaultClient.Do(req)
+	resp, error := gt.Client.Do(req)
 	if error != nil {
 		return nil, error
 	}

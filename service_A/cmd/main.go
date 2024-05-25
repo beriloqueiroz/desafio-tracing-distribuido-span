@@ -56,8 +56,8 @@ func main() {
 	tracer := otel.Tracer("request service A")
 	server := webserver.NewWebServer(configs.WebServerPort)
 
-	client := http.Client{
-		Transport: otelhttp.NewTransport(http.DefaultTransport),
+	client := &http.Client{
+		Transport: otelhttp.NewTransport(Interceptor{http.DefaultTransport}),
 	}
 
 	orchestrationGateway := &gateways.OrchestrationGatewayImpl{
@@ -127,4 +127,22 @@ func initTraceProvider(serviceName string, collectorUrl string) (func(context.Co
 	otel.SetTracerProvider(tracerProvider)
 	otel.SetTextMapPropagator(propagation.TraceContext{})
 	return tracerProvider.Shutdown, nil
+}
+
+type Interceptor struct {
+	core http.RoundTripper
+}
+
+func (Interceptor) modifyRequest(r *http.Request) *http.Request {
+	// otel.GetTextMapPropagator().Inject(r.Context(), propagation.HeaderCarrier(r.Header))
+	fmt.Println("LOG - Host: " + r.URL.Host)
+	return r
+}
+
+func (i Interceptor) RoundTrip(r *http.Request) (*http.Response, error) {
+	// modify before the request is sent
+	newReq := i.modifyRequest(r)
+
+	// send the request using the DefaultTransport
+	return i.core.RoundTrip(newReq)
 }
